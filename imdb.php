@@ -22,10 +22,10 @@ $year = $movie[5];
 
 //The genre column comes before the rating column and it can contain several genres separated by commas.
 //Because of this, instead of displaying the rating the program would display the second genre of the movie.
-//I start at the index where the rating is supposed to be if there were just one genre and I increase the index by one each time I dont get a boolean or int.
+//I start at the index where the rating is supposed to be if there were just one genre and I increase the index by one each time I dont get a double.
 
 $index = 9;
-while(floatval($movie[$index]) == 0 || intval($movie[$index]) == 0){
+while(floatval($movie[$index]) == 0){
     $index++;
 }
 $rating = $movie[$index];
