@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Vacancies Web App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+</head>
+<body onload=update()>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-transparent ">
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto"></ul>
+            <span class="navbar-text">
+            <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <form class="form-inline">
+                    <button class="btn btn-dark my-2 my-sm-0" onclick=logout()>Logout</button>
+                </form>
+            </li>
+        </ul>
+        </span>
+        </div>
+    </nav>
+    <h2 class="mt-5">Upload Your Company's Logo</h2>
+    <p id="error1" class="text-danger"></p>
+    <p id="message1" class="text-primary"></p>
+    <form id="uploadLogo" method="post" action="upload.php" enctype="multipart/form-data">
+        <input type="file" name="image"> <br>
+        <input id="companyLogo" type="text" name="logo" hidden>
+        <input id="logoId" type="text" name="id" hidden>
+        <input class="mb-3" type="submit" value="Upload">
+    </form>
+    <hr/>
+    <h2>Your Company's Details</h2>
+    <form id="updateCompany" method="post" action="update.php">
+        <div class="form-group">
+            <p id="error2" class="text-danger"></p>
+            <p id="message2" class="text-primary"></p>
+            <label for="inputName">Company Name</label>
+            <input id="companyName" type="text" class="form-control" id="inputName" name="name" placeholder="Name">
+        </div>
+        <div class="form-group">
+            <label for="inputCity">Company Headquarters</label>
+            <input id="companyCity" type="text" class="form-control" id="inputCity" name="city" placeholder="City">
+        </div>
+        <div class="form-group">
+            <label for="inputInfo">Contact Information</label>
+            <textarea id="companyInfo" class="form-control" id="inputInfo" aria-describedby="emailHelp" placeholder="Enter Here" name="info"></textarea>
+            <input id="updateId" type="text" name="id" hidden>
+        </div>
+        <button type="submit" class="btn btn-dark">Update</button>
+    </form>
+    <hr/>
+    <h2>Create a New Job</h2>
+    <form id="createJob" method="post" action="create.php">
+        <div class="form-group">
+            <p id="error3" class="text-danger"></p>
+            <p id="message3" class="text-primary"></p>
+            <label for="inputTitle">Job Title</label>
+            <input type="text" class="form-control" id="inputTitle" name="title" placeholder="Enter Title">
+        </div>
+        <div class="form-group">
+            <label for="inputCategory">Job Category</label>
+            <input type="text" class="form-control" id="inputCategory" name="category" placeholder="Enter Category">
+        </div>
+        <div class="form-group">
+            <label for="inputDescription">Job Description</label>
+            <textarea class="form-control" id="inputDescription" aria-describedby="emailHelp" placeholder="Enter Description" name="description"></textarea>
+            <input id="createId" type="text" name="id" hidden>
+        </div>
+        <button type="submit" class="btn btn-dark">Create</button>
+    </form>
+    <hr/>
+    <h2>The List of Jobs Your Company is Currently Offering</h2>
+    <p id="error4" class="text-danger"></p>
+    <p id="message4" class="text-primary"></p>
+    <div id="cards">
+
+    </div>
+</div>
+<script>
+    function update(){
+        if(sessionStorage.getItem("id") != null){
+            let id =sessionStorage.getItem("id");
+            fetch('http://localhost/tests/Web%20final/profile.php?id=' + id)
+                .then(result => result.json())
+                .then(data => {
+                    let jobs = data.jobs
+                    let company = data.company
+                    document.getElementById('companyName').value = company.name;
+                    document.getElementById('companyCity').value = company.city;
+                    document.getElementById('companyInfo').innerHTML = company.info;
+                    document.getElementById('companyLogo').innerHTML = company.logo;
+                    document.getElementById('logoId').value = id;
+                    document.getElementById('updateId').value = id;
+                    document.getElementById('createId').value = id;
+                    let txt = ''
+                    jobs.forEach(job => txt += "<div class='card'>" +
+                        "        <div class='card-body'>" +
+                        "            <form class='deleteJob' method='post' action='updateJob.php'>" +
+                        "                <label for='inputTitle'>Title: </label>" +
+                        "                <input type='text' name='title' value='" + job.title + "'>" +
+                        "                <label for='inputCategory'>Category: </label>" +
+                        "                <input type='text' id='inputCategory1' name='category' value='" + job.category + "'>" +
+                        "                <p class='card-text'>Description:</p>" +
+                        "                <textarea  class='form-control' name='description'>" + job.description + "</textarea>" +
+                        "                <input type='text' name='id' value='" + job.id + "' hidden>" +
+                        "                <input type='submit' name='update' class='btn btn-dark mt-2' value='Update'>" +
+                        "                <button class='btn btn-danger mt-2' onclick='deleteJob(" + job.id + ")'>Delete</button>" +
+                        "            </form>" +
+                        "        </div>" +
+                        "    </div>")
+                    document.getElementById('cards').innerHTML = txt
+                    activateFormButtons()
+                })
+        }else{
+            window.location.href = 'home.html';
+        }
+    }
+
+    function logout(){
+        sessionStorage.clear()
+        window.location.href = 'home.html';
+    }
+
+    const uploadForm = document.getElementById('uploadLogo');
+    uploadForm.addEventListener('submit', function (e){
+        e.preventDefault()
+        const formData = new FormData(this)
+        fetch('http://localhost/tests/Web%20final/upload.php', {
+            method: "POST",
+            body: formData
+        })
+            .then(result => result.json())
+            .then(data => {
+                console.log(data)
+                if("error1" in data){
+                    document.getElementById('message1').innerHTML = "";
+                    document.getElementById('error1').innerHTML = data.error1;
+                }else{
+                    document.getElementById('error1').innerHTML = "";
+                    document.getElementById('message1').innerHTML = data.message1;
+                }
+            })
+    });
+
+    const updateForm = document.getElementById('updateCompany');
+    updateForm.addEventListener('submit', function (e){
+        e.preventDefault()
+        const formData = new FormData(this)
+        fetch('http://localhost/tests/Web%20final/update.php', {
+            method: "POST",
+            body: formData
+        })
+            .then(result => result.json())
+            .then(data => {
+                console.log(data)
+                if("error2" in data){
+                    document.getElementById('message2').innerHTML = "";
+                    document.getElementById('error2').innerHTML = data.error2;
+                }else{
+                    document.getElementById('error2').innerHTML = "";
+                    document.getElementById('message2').innerHTML = data.message2;
+                }
+            })
+    });
+
+    const createForm = document.getElementById('createJob');
+    createForm.addEventListener('submit', function (e){
+        e.preventDefault()
+        const formData = new FormData(this)
+        fetch('http://localhost/tests/Web%20final/create.php', {
+            method: "POST",
+            body: formData
+        })
+            .then(result => result.json())
+            .then(data => {
+                console.log(data)
+                if("error3" in data){
+                    document.getElementById('message3').innerHTML = "";
+                    document.getElementById('error3').innerHTML = data.error3;
+                }else{
+                    document.getElementById('error3').innerHTML = "";
+                    document.getElementById('message3').innerHTML = data.message3;
+                    update()
+                }
+            })
+    });
+
+    function activateFormButtons(){
+        document.querySelectorAll('.deleteJob').forEach(item => {
+            item.addEventListener('submit', function (e){
+                e.preventDefault()
+                console.log(e.target.tagName)
+                const formData = new FormData(this)
+                for(let pair of formData.entries()){
+                    console.log(pair[0]+ " " + pair[1])
+                }
+                fetch('http://localhost/tests/Web%20final/updateJob.php', {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(result => result.json())
+                    .then(data => {
+                        console.log(data)
+                        if("error4" in data){
+                            document.getElementById('message4').innerHTML = "";
+                            document.getElementById('error4').innerHTML = data.error4;
+                        }else{
+                            document.getElementById('error4').innerHTML = "";
+                            document.getElementById('message4').innerHTML = data.message4;
+                        }
+                    })
+            })
+        })
+    }
+
+    function deleteJob(id){
+        console.log(id)
+        fetch('http://localhost/tests/Web%20final/deleteJob.php?id=' + id)
+            .then(result => result.json())
+            .then(data => {
+                console.log(data)
+                if("error4" in data){
+                    document.getElementById('message4').innerHTML = "";
+                    document.getElementById('error4').innerHTML = data.error4;
+                }else{
+                    document.getElementById('error4').innerHTML = "";
+                    document.getElementById('message4').innerHTML = data.message4;
+                    update()
+                }
+            })
+
+    }
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+</body>
+</html>
