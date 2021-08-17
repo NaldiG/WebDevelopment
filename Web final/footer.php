@@ -1,5 +1,5 @@
 <footer class="pt-3 pb-3">
-    &copy; Web Systems Development Midterm Project <br>
+    &copy; Web Development Project <br>
     Naldi Gega
 </footer>
 </div>
